@@ -1,5 +1,5 @@
 import './globals.css'
-import { Inter } from 'next/font/google'
+import { Inter, Fredoka } from 'next/font/google'
 
 export const metadata = {
   metadataBase: new URL('https://postgres-starter.vercel.app'),
@@ -14,6 +14,12 @@ const inter = Inter({
   display: 'swap',
 })
 
+const fredoka = Fredoka({
+  variable: '--font-fredoka',
+  subsets: ['latin'],
+  display: 'swap',
+})
+
 export default function RootLayout({
   children,
 }: {
@@ -21,7 +27,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.variable}>{children}</body>
+      <body className={`${inter.variable} ${fredoka.variable}`}>{children}</body>
     </html>
   )
 }
