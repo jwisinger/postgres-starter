@@ -38,7 +38,7 @@ export default async function RacerDetail({ params }: RacerDetailProps) {
       notFound()
     }
 
-    const racer: Racer = data[0]
+    const racer = data[0] as Racer
     const imageData = `data:image/jpeg;base64,${Buffer.from(racer.Image).toString(
       'base64'
     )}`
