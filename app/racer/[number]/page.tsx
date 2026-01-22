@@ -43,6 +43,33 @@ export default async function RacerDetail({ params }: RacerDetailProps) {
       'base64'
     )}`
 
+    const queryResp = await sql`SELECT table_name
+                                FROM information_schema.tables
+                                WHERE table_schema = 'public' -- Filter for the 'public' schema
+                                AND table_type = 'BASE TABLE'`
+    const tablelist: string[] = queryResp.map(row => row.table_name);
+    const raceList = tablelist.filter(table => (table !== 'raceTable') && (table !== `settingsTable`));
+    let raceTimes: string[] = []
+
+    for (const race of raceList) {
+      try {
+        const result = await sql`SELECT * FROM ${sql(race)} WHERE "Number" = ${racerNumber}`;
+
+        if (result.length > 0) {
+          const row = result[0];
+          // Extract all non-null values from columns with "Heat" in the name
+          const heatValues = Object.entries(row)
+            .filter(([key]) => key.toLowerCase().includes('heat'))
+            .filter(([, value]) => value !== null && value !== undefined)
+            .map(([key, value]) => `${race} [${key}] = ${value}s`);
+
+          raceTimes.push(...heatValues);
+        }
+      } catch (error) {
+        console.error(`Error querying table ${race}:`, error);
+      }
+    }
+
     const levelColorMap: { [key: string]: string } = {
       Daisy: 'rgb(0, 153, 255)',
       Brownie: 'rgb(102, 51, 0)',
@@ -111,8 +138,10 @@ export default async function RacerDetail({ params }: RacerDetailProps) {
                 </span>
 
                 <div className="w-full bg-gray-100 rounded-lg p-4 mb-8">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-2">Details</h2>
-                  <div className="space-y-2">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-2 text-center">Racer Info</h2>
+
+                  {/* Basic Information Section */}
+                  <div className="space-y-2 pb-4 border-b border-gray-300">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Name:</span>
                       <span className="font-semibold text-gray-900">{racer.Name}</span>
@@ -129,6 +158,30 @@ export default async function RacerDetail({ params }: RacerDetailProps) {
                       <span className="text-gray-600">Racer ID:</span>
                       <span className="font-semibold text-gray-900">{racer.Number}</span>
                     </div>
+                  </div>
+
+                  {/* Race Times Section */}
+                  <h2 className="text-lg font-semibold text-gray-900 mb-2 mt-4 text-center">Race Times</h2>
+                  <div className="space-y-2">
+                    {raceTimes.length > 0 ? (
+                      <>
+                        {raceTimes.map((time, index) => {
+                          // Parse format: "RaceName [Heat X] = value"
+                          const match = time.match(/^(.+?)\s*=\s*(.+)$/);
+                          const label = match ? match[1].trim() : time;
+                          const value = match ? match[2].trim() : '';
+
+                          return (
+                            <div key={index} className="flex justify-between">
+                              <span className="text-gray-600">{label}</span>
+                              <span className="font-semibold text-gray-900">{value}</span>
+                            </div>
+                          );
+                        })}
+                      </>
+                    ) : (
+                      <div className="text-gray-500">No times recorded</div>
+                    )}
                   </div>
                 </div>
               </div>
