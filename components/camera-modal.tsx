@@ -12,6 +12,7 @@ export default function CameraModal({ isOpen, onClose }: CameraModalProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [hasPermission, setHasPermission] = useState<boolean | null>(null)
   const [isPhotoTaken, setIsPhotoTaken] = useState(false)
+  const [capturedImage, setCapturedImage] = useState<string | null>(null)
   const [stream, setStream] = useState<MediaStream | null>(null)
   const [isRequesting, setIsRequesting] = useState(false)
 
@@ -50,17 +51,22 @@ export default function CameraModal({ isOpen, onClose }: CameraModalProps) {
   }, [isOpen])
 
   const takePhoto = () => {
-    if (videoRef.current && canvasRef.current) {
+    if (videoRef.current) {
       const video = videoRef.current
-      const canvas = canvasRef.current
 
       // Check if video has dimensions
       if (video.videoWidth > 0 && video.videoHeight > 0) {
-        const context = canvas.getContext('2d')
+        // Create a temporary canvas to draw the image
+        const tempCanvas = document.createElement('canvas')
+        tempCanvas.width = video.videoWidth
+        tempCanvas.height = video.videoHeight
+        const context = tempCanvas.getContext('2d')
+
         if (context) {
-          canvas.width = video.videoWidth
-          canvas.height = video.videoHeight
           context.drawImage(video, 0, 0)
+          // Convert to data URL and store
+          const imageData = tempCanvas.toDataURL('image/jpeg')
+          setCapturedImage(imageData)
           setIsPhotoTaken(true)
         }
       } else {
@@ -71,12 +77,12 @@ export default function CameraModal({ isOpen, onClose }: CameraModalProps) {
 
   const retakePhoto = () => {
     setIsPhotoTaken(false)
+    setCapturedImage(null)
   }
 
   const uploadPhoto = () => {
-    if (canvasRef.current) {
-      const imageData = canvasRef.current.toDataURL('image/jpeg')
-      console.log('Photo captured:', imageData)
+    if (capturedImage) {
+      console.log('Photo captured:', capturedImage)
       // TODO: Handle upload logic here
       onClose()
     }
@@ -110,12 +116,12 @@ export default function CameraModal({ isOpen, onClose }: CameraModalProps) {
                   {isRequesting ? 'Requesting...' : 'Request Permission'}
                 </button>
               </div>
-            ) : isPhotoTaken ? (
+            ) : isPhotoTaken && capturedImage ? (
               <div className="w-full h-64 flex items-center justify-center bg-black">
-                <canvas
-                  ref={canvasRef}
+                <img
+                  src={capturedImage}
+                  alt="Captured"
                   className="max-w-full max-h-full"
-                  style={{ maxHeight: '100%' }}
                 />
               </div>
             ) : (
