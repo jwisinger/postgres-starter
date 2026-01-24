@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { getVideoUrl } from '@/lib/actions'
 
 interface RaceTimeEntry {
   raceName: string
@@ -16,6 +17,8 @@ interface RaceTimesProps {
 export default function RaceTimes({ times }: RaceTimesProps) {
   const [selectedRace, setSelectedRace] = useState<RaceTimeEntry | null>(null)
   const [playbackRate, setPlaybackRate] = useState(1)
+  const [videoUrl, setVideoUrl] = useState<string | null>(null)
+  const [isLoadingVideo, setIsLoadingVideo] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
@@ -23,6 +26,16 @@ export default function RaceTimes({ times }: RaceTimesProps) {
       videoRef.current.playbackRate = playbackRate
     }
   }, [playbackRate])
+
+  useEffect(() => {
+    if (selectedRace) {
+      setIsLoadingVideo(true)
+      getVideoUrl(selectedRace.raceName, selectedRace.heatName).then((url) => {
+        setVideoUrl(url)
+        setIsLoadingVideo(false)
+      })
+    }
+  }, [selectedRace])
 
   return (
     <>
@@ -74,18 +87,28 @@ export default function RaceTimes({ times }: RaceTimesProps) {
             </div>
 
             {/* Video player */}
-            <video
-              ref={videoRef}
-              className="w-full aspect-video bg-gray-200 rounded-lg mb-4"
-              controls
-              controlsList="nodownload"
-            >
-              <source
-                src="https://derbynet.retool.com/api/file/560e761d-d394-4b23-ade9-f9feb744b033"
-                type="video/mp4"
-              />
-              Your browser does not support the video tag.
-            </video>
+            {isLoadingVideo ? (
+              <div className="w-full aspect-video bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
+                <p className="text-gray-500">Loading video...</p>
+              </div>
+            ) : videoUrl ? (
+              <video
+                ref={videoRef}
+                className="w-full aspect-video bg-gray-200 rounded-lg mb-4"
+                controls
+                controlsList="nodownload"
+              >
+                <source
+                  src={videoUrl}
+                  type="video/mp4"
+                />
+                Your browser does not support the video tag.
+              </video>
+            ) : (
+              <div className="w-full aspect-video bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
+                <p className="text-gray-500">No video found for this race</p>
+              </div>
+            )}
 
             {/* Playback speed toggle button */}
             <div className="flex justify-center mb-6">
