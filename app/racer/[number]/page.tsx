@@ -4,6 +4,7 @@ import Link from 'next/link'
 import postgres from 'postgres'
 import ProtectedContent from '@/components/protected-content'
 import RefreshButton from '@/components/refresh-button'
+import RaceTimes from '@/components/race-times'
 
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' })
 
@@ -166,27 +167,23 @@ export default async function RacerDetail({ params }: RacerDetailProps) {
 
                   {/* Race Times Section */}
                   <h2 className="text-lg font-semibold text-gray-900 mb-2 mt-4 text-center">Race Times</h2>
-                  <div className="space-y-2">
-                    {raceTimes.length > 0 ? (
-                      <>
-                        {raceTimes.map((time, index) => {
-                          // Parse format: "RaceName [Heat X] = value"
-                          const match = time.match(/^(.+?)\s*=\s*(.+)$/);
-                          const label = match ? match[1].trim() : time;
-                          const value = match ? match[2].trim() : '';
+                  <RaceTimes
+                    times={raceTimes.map((time) => {
+                      // Parse format: "RaceName [Heat X] = value"
+                      const match = time.match(/^(.+?)\s*\[(.+?)\]\s*=\s*(.+)$/);
+                      const fullLabel = match ? match[1].trim() : '';
+                      const heatName = match ? match[2].trim() : '';
+                      const value = match ? match[3].trim() : '';
+                      const originalLabel = match ? `${match[1].trim()} [${match[2].trim()}]` : time;
 
-                          return (
-                            <div key={index} className="flex justify-between">
-                              <span className="text-gray-600">{label}</span>
-                              <span className="font-semibold text-gray-900">{value}</span>
-                            </div>
-                          );
-                        })}
-                      </>
-                    ) : (
-                      <div className="text-gray-500">No times recorded</div>
-                    )}
-                  </div>
+                      return {
+                        raceName: fullLabel,
+                        heatName: heatName,
+                        value: value,
+                        originalLabel: originalLabel
+                      };
+                    })}
+                  />
                 </div>
               </div>
             </div>
