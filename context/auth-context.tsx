@@ -10,13 +10,12 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-const CORRECT_PASSWORD = 'trefoil123'
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const correctPassword = process.env.NEXT_PUBLIC_AUTH_PASSWORD
 
   const authenticate = (password: string): boolean => {
-    if (password === CORRECT_PASSWORD) {
+    if (password === correctPassword) {
       setIsAuthenticated(true)
       return true
     }
