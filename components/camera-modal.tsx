@@ -10,19 +10,23 @@ interface CameraModalProps {
 export default function CameraModal({ isOpen, onClose }: CameraModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
   const [hasPermission, setHasPermission] = useState<boolean | null>(null)
   const [isPhotoTaken, setIsPhotoTaken] = useState(false)
   const [capturedImage, setCapturedImage] = useState<string | null>(null)
   const [stream, setStream] = useState<MediaStream | null>(null)
   const [isRequesting, setIsRequesting] = useState(false)
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user')
 
-  const setupCamera = async () => {
+  const setupCamera = async (mode: 'user' | 'environment' = 'user') => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user' }
+        video: { facingMode: mode }
       })
       setHasPermission(true)
       setStream(mediaStream)
+      setFacingMode(mode)
+      streamRef.current = mediaStream
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream
       }
@@ -35,7 +39,19 @@ export default function CameraModal({ isOpen, onClose }: CameraModalProps) {
 
   const requestPermission = async () => {
     setIsRequesting(true)
-    await setupCamera()
+    await setupCamera(facingMode)
+  }
+
+  const switchCamera = async () => {
+    // Stop current stream
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop())
+      streamRef.current = null
+    }
+
+    // Switch to the other camera
+    const newFacingMode = facingMode === 'user' ? 'environment' : 'user'
+    await setupCamera(newFacingMode)
   }
 
   useEffect(() => {
@@ -44,8 +60,13 @@ export default function CameraModal({ isOpen, onClose }: CameraModalProps) {
     setupCamera()
 
     return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop())
+      // Stop all camera tracks when modal closes
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop())
+        streamRef.current = null
+      }
+      if (videoRef.current) {
+        videoRef.current.srcObject = null
       }
     }
   }, [isOpen])
@@ -86,8 +107,9 @@ export default function CameraModal({ isOpen, onClose }: CameraModalProps) {
 
   const retakePhoto = () => {
     // Stop current stream
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop())
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop())
+      streamRef.current = null
     }
 
     // Reset all state
@@ -124,7 +146,7 @@ export default function CameraModal({ isOpen, onClose }: CameraModalProps) {
             </button>
           </div>
 
-          <div className="bg-black rounded-lg overflow-hidden mb-4">
+          <div className="bg-black rounded-lg overflow-hidden mb-4 relative">
             {hasPermission === false ? (
               <div className="w-full h-64 flex flex-col items-center justify-center bg-gray-900 gap-4 px-4">
                 <p className="text-white text-center">Camera permission is required to take photos</p>
@@ -145,12 +167,33 @@ export default function CameraModal({ isOpen, onClose }: CameraModalProps) {
                 />
               </div>
             ) : (
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                className="w-full h-64 object-cover"
-              />
+              <>
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  className="w-full h-64 object-cover"
+                />
+                <button
+                  onClick={switchCamera}
+                  className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors"
+                  title="Switch camera"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 16H4m0 0l3-3m-3 3l3 3M16 8h4m0 0l-3 3m3-3l-3-3"
+                    />
+                  </svg>
+                </button>
+              </>
             )}
           </div>
 
