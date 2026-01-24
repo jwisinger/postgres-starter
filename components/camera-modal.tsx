@@ -51,12 +51,20 @@ export default function CameraModal({ isOpen, onClose }: CameraModalProps) {
 
   const takePhoto = () => {
     if (videoRef.current && canvasRef.current) {
-      const context = canvasRef.current.getContext('2d')
-      if (context) {
-        canvasRef.current.width = videoRef.current.videoWidth
-        canvasRef.current.height = videoRef.current.videoHeight
-        context.drawImage(videoRef.current, 0, 0)
-        setIsPhotoTaken(true)
+      const video = videoRef.current
+      const canvas = canvasRef.current
+
+      // Check if video has dimensions
+      if (video.videoWidth > 0 && video.videoHeight > 0) {
+        const context = canvas.getContext('2d')
+        if (context) {
+          canvas.width = video.videoWidth
+          canvas.height = video.videoHeight
+          context.drawImage(video, 0, 0)
+          setIsPhotoTaken(true)
+        }
+      } else {
+        console.error('Video not ready - dimensions are 0')
       }
     }
   }
@@ -103,10 +111,13 @@ export default function CameraModal({ isOpen, onClose }: CameraModalProps) {
                 </button>
               </div>
             ) : isPhotoTaken ? (
-              <canvas
-                ref={canvasRef}
-                className="w-full h-64 object-cover"
-              />
+              <div className="w-full h-64 flex items-center justify-center bg-black">
+                <canvas
+                  ref={canvasRef}
+                  className="max-w-full max-h-full"
+                  style={{ maxHeight: '100%' }}
+                />
+              </div>
             ) : (
               <video
                 ref={videoRef}
