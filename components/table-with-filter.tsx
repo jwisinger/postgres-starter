@@ -106,7 +106,8 @@ export default function TableWithFilter({ racers: initialRacers, databases }: Ta
             className="h-24 w-auto"
           />
         </div>
-        <div className="flex flex-col items-end py-3 gap-4">
+        <div className="flex flex-col items-end py-3 gap-6">
+          <RefreshButton />
           <div className="relative">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -164,7 +165,6 @@ export default function TableWithFilter({ racers: initialRacers, databases }: Ta
               </div>
             )}
           </div>
-          <RefreshButton />
         </div>
       </div>
 
