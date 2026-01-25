@@ -31,7 +31,8 @@ export default async function RacerDetail({ params, searchParams }: RacerDetailP
   const databaseName = searchParams.database || 'myevent'
 
   // Create database-specific connection
-  const baseUrl = process.env.POSTGRES_URL!.replace(/\/[^/]+$/, `/${databaseName}`)
+  //const baseUrl = process.env.POSTGRES_URL!.replace(/\/[^/]+$/, `/${databaseName}`)
+  const baseUrl = process.env.POSTGRES_URL! + databaseName
   const sql = postgres(baseUrl, { ssl: "require" })
 
   // Validate that the number is actually a valid integer
