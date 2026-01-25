@@ -106,17 +106,16 @@ export default function TableWithFilter({ racers: initialRacers, databases }: Ta
             className="h-24 w-auto"
           />
         </div>
-        <div className="flex flex-col items-start gap-2">
-          <RefreshButton />
+        <div className="flex flex-col items-end py-3 gap-4">
           <div className="relative">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-sm text-gray-500 hover:text-gray-900"
+              className="text-sm text-gray-500 hover:text-gray-900 text-right"
             >
               Menu
             </button>
             {isMenuOpen && (
-              <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                 <button
                   onClick={() => {
                     setIsCameraOpen(true)
@@ -165,6 +164,7 @@ export default function TableWithFilter({ racers: initialRacers, databases }: Ta
               </div>
             )}
           </div>
+          <RefreshButton />
         </div>
       </div>
 
