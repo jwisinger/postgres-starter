@@ -29,6 +29,7 @@ export default function TableWithFilter({ racers: initialRacers, databases }: Ta
   const [slideshowImages, setSlideshowImages] = useState<string[]>([])
   const [selectedDatabase, setSelectedDatabase] = useState<string | null>(null)
   const [isLoadingDatabase, setIsLoadingDatabase] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   // Set first database as default on mount
   useEffect(() => {
@@ -95,8 +96,8 @@ export default function TableWithFilter({ racers: initialRacers, databases }: Ta
 
   return (
     <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 p-4 shadow-2xl ring-1 ring-white/60 rounded-2xl backdrop-blur-lg max-w-2xl mx-auto w-full">
-      <div className="flex justify-between items-center mb-4">
-        <div className="space-y-2">
+      <div className="flex justify-between items-start mb-4 gap-4">
+        <div>
           <Image
             src="/GIRL3.jpg"
             alt="G.I.R.L. Logo"
@@ -105,49 +106,66 @@ export default function TableWithFilter({ racers: initialRacers, databases }: Ta
             className="h-24 w-auto"
           />
         </div>
-        <RefreshButton />
-      </div>
-      <div className="flex justify-between items-center">
-        <button
-          onClick={() => setIsCameraOpen(true)}
-          className="flex justify-between px-4 py-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-gray-900 font-medium transition-colors text-left border border-blue-200 hover:border-blue-300"
-          >
-          <svg
-            className="w-8 h-8 text-gray-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0118.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-            />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-            />
-          </svg>
-          <span className="px-2">Take Photo</span>
-        </button>
-        <button
-            onClick={handleSlideshowOpen}
-            className="flex justify-between px-4 py-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-gray-900 font-medium transition-colors text-left border border-blue-200 hover:border-blue-300"
-            aria-label="Open camera"
-          >
-          <svg
-            className="w-8 h-8 text-gray-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 25 25"
-          >
-            <path fill="currentColor" d="M20 3H4c-1.103 0-2 .897-2 2v10c0 1.103.897 2 2 2h7v3H8v2h8v-2h-3v-3h7c1.103 0 2-.897 2-2V5c0-1.103-.897-2-2-2M10 13V7l5 3z"/>
-          </svg>
-          <span className="px-2">View Slideshow</span>
-        </button>
+        <div className="flex flex-col items-start gap-2">
+          <RefreshButton />
+          <div className="relative">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-sm text-gray-500 hover:text-gray-900"
+            >
+              Menu
+            </button>
+            {isMenuOpen && (
+              <div className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                <button
+                  onClick={() => {
+                    setIsCameraOpen(true)
+                    setIsMenuOpen(false)
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 first:rounded-t-lg transition-colors"
+                >
+                  <svg
+                    className="w-5 h-5 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0118.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                  Take Photo
+                </button>
+                <button
+                  onClick={() => {
+                    handleSlideshowOpen()
+                    setIsMenuOpen(false)
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 last:rounded-b-lg transition-colors"
+                >
+                  <svg
+                    className="w-5 h-5 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 25 25"
+                  >
+                    <path fill="currentColor" d="M20 3H4c-1.103 0-2 .897-2 2v10c0 1.103.897 2 2 2h7v3H8v2h8v-2h-3v-3h7c1.103 0 2-.897 2-2V5c0-1.103-.897-2-2-2M10 13V7l5 3z"/>
+                  </svg>
+                  View Slideshow
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {databases.length === 0 ? (
