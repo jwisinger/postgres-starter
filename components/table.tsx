@@ -1,5 +1,6 @@
 import postgres from 'postgres'
 import TableWithFilter from './table-with-filter'
+import getImages from '@/lib/getImages'
 
 // Get list of non-template databases
 async function getAvailableDatabases() {
@@ -27,6 +28,7 @@ export default async function Table() {
   let racers
   let videoLinks
   let databases
+  let blobImages
 
   try {
     databases = await getAvailableDatabases()
@@ -40,6 +42,8 @@ export default async function Table() {
       throw e
   }
 
+  blobImages = await getImages()
+
   // Convert Uint8Array Image to base64 string for client component
   if (racers != null) {
     const processedData = racers.map((user: any) => ({
@@ -47,6 +51,6 @@ export default async function Table() {
       Image: `data:image/jpeg;base64,${Buffer.from(user.Image).toString('base64')}`
     }))
     
-    return <TableWithFilter racers={processedData} databases={databases || []} />
+    return <TableWithFilter racers={processedData} databases={databases || []} blobImages={blobImages}/>
   } else return "";
 }

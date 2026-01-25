@@ -6,7 +6,6 @@ import Link from 'next/link'
 import RefreshButton from './refresh-button'
 import CameraModal from './camera-modal'
 import SlideshowModal from './slideshow-modal'
-import getImages from '@/lib/getImages'
 import { getRacersFromDatabase } from '@/lib/actions'
 
 interface User {
@@ -20,9 +19,10 @@ interface User {
 interface TableWithFilterProps {
   racers: User[]
   databases: string[]
+  blobImages: string[]
 }
 
-export default function TableWithFilter({ racers: initialRacers, databases }: TableWithFilterProps) {
+export default function TableWithFilter({ racers: initialRacers, databases, blobImages }: TableWithFilterProps) {
   const [data, setData] = useState<User[]>(initialRacers)
   const [searchTerm, setSearchTerm] = useState('')
   const [isCameraOpen, setIsCameraOpen] = useState(false)
@@ -51,13 +51,6 @@ export default function TableWithFilter({ racers: initialRacers, databases }: Ta
     } finally {
       setIsLoadingDatabase(false)
     }
-
-    try {
-      const images = await getImages()
-      setSlideshowImagesBlobs(images)
-    } catch (error) {
-      console.error('Error loading images:', error)
-    } 
   }
 
   const handleSlideshowOpen = () => {
@@ -65,6 +58,8 @@ export default function TableWithFilter({ racers: initialRacers, databases }: Ta
     const images = data
       .filter(racer => racer.Image && racer.Image.trim() !== '')
       .map(racer => racer.Image)
+
+    setSlideshowImagesBlobs(blobImages)
 
     if (images.length > 0) {
       setSlideshowImagesDatabase(images)
