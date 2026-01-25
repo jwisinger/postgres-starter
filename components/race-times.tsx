@@ -12,9 +12,10 @@ interface RaceTimeEntry {
 
 interface RaceTimesProps {
   times: RaceTimeEntry[]
+  database?: string
 }
 
-export default function RaceTimes({ times }: RaceTimesProps) {
+export default function RaceTimes({ times, database }: RaceTimesProps) {
   const [selectedRace, setSelectedRace] = useState<RaceTimeEntry | null>(null)
   const [playbackRate, setPlaybackRate] = useState(1)
   const [videoUrl, setVideoUrl] = useState<string | null>(null)
@@ -30,12 +31,12 @@ export default function RaceTimes({ times }: RaceTimesProps) {
   useEffect(() => {
     if (selectedRace) {
       setIsLoadingVideo(true)
-      getVideoUrl(selectedRace.raceName, selectedRace.heatName).then((url) => {
+      getVideoUrl(selectedRace.raceName, selectedRace.heatName, database).then((url) => {
         setVideoUrl(url)
         setIsLoadingVideo(false)
       })
     }
-  }, [selectedRace])
+  }, [selectedRace, database])
 
   return (
     <>

@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import RefreshButton from './refresh-button'
 import CameraModal from './camera-modal'
+import { getRacersFromDatabase } from '@/lib/actions'
 
 interface User {
   Number: number
@@ -14,9 +15,37 @@ interface User {
   Image: string
 }
 
-export default function TableWithFilter({ racers: data }: { racers: User[] }) {
+interface TableWithFilterProps {
+  racers: User[]
+  databases: string[]
+}
+
+export default function TableWithFilter({ racers: initialRacers, databases }: TableWithFilterProps) {
+  const [data, setData] = useState<User[]>(initialRacers)
   const [searchTerm, setSearchTerm] = useState('')
   const [isCameraOpen, setIsCameraOpen] = useState(false)
+  const [selectedDatabase, setSelectedDatabase] = useState<string | null>(null)
+  const [isLoadingDatabase, setIsLoadingDatabase] = useState(false)
+
+  // Set first database as default on mount
+  useEffect(() => {
+    if (databases.length > 0 && !selectedDatabase) {
+      setSelectedDatabase(databases[0])
+    }
+  }, [databases, selectedDatabase])
+
+  const handleDatabaseChange = async (databaseName: string) => {
+    setSelectedDatabase(databaseName)
+    setIsLoadingDatabase(true)
+    try {
+      const racers = await getRacersFromDatabase(databaseName)
+      setData(racers)
+    } catch (error) {
+      console.error('Error loading database:', error)
+    } finally {
+      setIsLoadingDatabase(false)
+    }
+  }
 
   const filteredRacers = useMemo(() => {
     if (!searchTerm.trim()) {
@@ -89,6 +118,32 @@ export default function TableWithFilter({ racers: data }: { racers: User[] }) {
         <RefreshButton />
       </div>
 
+      {databases.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-600 text-lg">
+            There are no available Events.
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Select Event
+            </label>
+            <select
+              value={selectedDatabase || ''}
+              onChange={(e) => handleDatabaseChange(e.target.value)}
+              disabled={isLoadingDatabase}
+              className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 focus:border-purple-500 focus:outline-none text-gray-900 bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {databases.map((db) => (
+                <option key={db} value={db}>
+                  {db}
+                </option>
+              ))}
+            </select>
+          </div>
+
       <div className="mb-4">
         <input
           type="text"
@@ -112,7 +167,7 @@ export default function TableWithFilter({ racers: data }: { racers: User[] }) {
             return (
               <Link
                 key={user.Number}
-                href={`/racer/${user.Number}`}
+                href={`/racer/${user.Number}?database=${selectedDatabase}`}
                 className="block"
               >
                 <div
@@ -153,7 +208,9 @@ export default function TableWithFilter({ racers: data }: { racers: User[] }) {
             </p>
           </div>
         )}
-      </div>
+        </div>
+        </>
+      )}
       <CameraModal isOpen={isCameraOpen} onClose={() => setIsCameraOpen(false)} />
     </div>
   )

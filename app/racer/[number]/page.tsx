@@ -6,11 +6,12 @@ import ProtectedContent from '@/components/protected-content'
 import RefreshButton from '@/components/refresh-button'
 import RaceTimes from '@/components/race-times'
 
-const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' })
-
 interface RacerDetailProps {
   params: {
     number: string
+  }
+  searchParams: {
+    database?: string
   }
 }
 
@@ -24,9 +25,14 @@ interface Racer {
 
 export const dynamic = 'force-dynamic'
 
-export default async function RacerDetail({ params }: RacerDetailProps) {
+export default async function RacerDetail({ params, searchParams }: RacerDetailProps) {
   const resolvedParams = await params
   const racerNumber = parseInt(resolvedParams.number)
+  const databaseName = searchParams.database || 'myevent'
+
+  // Create database-specific connection
+  const baseUrl = process.env.POSTGRES_URL!.replace(/\/[^/]+$/, `/${databaseName}`)
+  const sql = postgres(baseUrl, { ssl: "require" })
 
   // Validate that the number is actually a valid integer
   if (isNaN(racerNumber)) {
@@ -183,6 +189,7 @@ export default async function RacerDetail({ params }: RacerDetailProps) {
                         originalLabel: originalLabel
                       };
                     })}
+                    database={databaseName}
                   />
                 </div>
               </div>
