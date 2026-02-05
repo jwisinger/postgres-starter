@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import Image from 'next/image'
+
 import Link from 'next/link'
 import postgres from 'postgres'
 import ProtectedContent from '@/components/protected-content'
@@ -20,7 +20,7 @@ interface Racer {
   Name: string
   Troop: number
   Level: string
-  Image: Uint8Array
+  Image: string
 }
 
 export const dynamic = 'force-dynamic'
@@ -51,10 +51,18 @@ export default async function RacerDetail({ params, searchParams }: RacerDetailP
       notFound()
     }
 
-    const racer = data[0] as Racer
-    const imageData = `data:image/jpeg;base64,${Buffer.from(racer.Image).toString(
-      'base64'
-    )}`
+    const racer = data[0] as any
+
+    // Convert image URL/data to displayable format
+    let imageData = ''
+    if (typeof racer.Image === 'string') {
+      // It's a Google Drive URL - convert and proxy it
+      const viewUrl = racer.Image.replace('export=download', 'export=view')
+      imageData = `/api/proxy-image?url=${encodeURIComponent(viewUrl)}`
+    } else if (racer.Image instanceof Uint8Array || Buffer.isBuffer(racer.Image)) {
+      // It's binary data - convert to base64
+      imageData = `data:image/jpeg;base64,${Buffer.from(racer.Image).toString('base64')}`
+    }
 
     const queryResp = await sql`SELECT table_name
                                 FROM information_schema.tables
@@ -128,12 +136,10 @@ export default async function RacerDetail({ params, searchParams }: RacerDetailP
                   className="bg-gradient-to-br p-2 rounded-full ring-4 ring-white shadow-lg mb-6"
                   style={colorStyle}
                 >
-                  <Image
+                  <img
                     src={imageData}
                     alt={racer.Name}
-                    width={200}
-                    height={200}
-                    className="rounded-full"
+                    className="rounded-full w-[200px] h-[200px] object-cover"
                   />
                 </div>
 

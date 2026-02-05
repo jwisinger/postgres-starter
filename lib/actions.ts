@@ -12,18 +12,32 @@ export interface RacerData {
   Image: string
 }
 
+// Convert image URL/data to displayable format
+function convertImageToDataUrl(imageData: any): string {
+  if (!imageData) return ''
+  if (typeof imageData === 'string') {
+    // Convert Google Drive download URLs to view URLs
+    const viewUrl = imageData.replace('export=download', 'export=view')
+    // Proxy through our server to avoid CORB blocking
+    return `/api/proxy-image?url=${encodeURIComponent(viewUrl)}`
+  }
+
+  return ''
+}
+
 export async function getVideoUrl(raceName: string, heatName: string, database?: string): Promise<string | null> {
+  // Extract numeric portion from heatName (e.g., "heat1" -> 1)
+  const heatMatch = heatName.match(/\d+/)
+  const heatNumber = heatMatch ? parseInt(heatMatch[0]) : null
+
+  if (!heatNumber) {
+    return null
+  }
+
+  let dbSql = sql
+  const isCustomDb = !!database
+
   try {
-    // Extract numeric portion from heatName (e.g., "heat1" -> 1)
-    const heatMatch = heatName.match(/\d+/)
-    const heatNumber = heatMatch ? parseInt(heatMatch[0]) : null
-
-    if (!heatNumber) {
-      return null
-    }
-
-    let dbSql = sql
-
     // Use database-specific connection if provided
     if (database) {
       const baseUrl = process.env.POSTGRES_URL! + database
@@ -36,10 +50,6 @@ export async function getVideoUrl(raceName: string, heatName: string, database?:
       AND "HeatNumber" = ${heatNumber}
     `
 
-    if (database && dbSql !== sql) {
-      await dbSql.end()
-    }
-
     if (result.length > 0) {
       return result[0].Url as string
     }
@@ -48,25 +58,29 @@ export async function getVideoUrl(raceName: string, heatName: string, database?:
   } catch (error) {
     console.error('Error fetching video URL:', error)
     return null
+  } finally {
+    if (isCustomDb && dbSql !== sql) {
+      await dbSql.end()
+    }
   }
 }
 
 export async function getRacersFromDatabase(databaseName: string): Promise<RacerData[]> {
+  const baseUrl = process.env.POSTGRES_URL! + databaseName
+  const dbSql = postgres(baseUrl, { ssl: "require" })
+
   try {
-    const baseUrl = process.env.POSTGRES_URL! + databaseName
-    const dbSql = postgres(baseUrl, { ssl: "require" })
     const racers = await dbSql`SELECT * FROM "raceTable"`
 
-    // Convert Uint8Array Image to base64 string
-    const processedData = racers.map((user: any) => ({
-      ...user,
-      Image: `data:image/jpeg;base64,${Buffer.from(user.Image).toString('base64')}`
+    // Convert image data to serializable format
+    return racers.map((racer: any) => ({
+      ...racer,
+      Image: convertImageToDataUrl(racer.Image)
     }))
-
-    await dbSql.end()
-    return processedData
   } catch (error) {
     console.error(`Error fetching racers from database ${databaseName}:`, error)
     return []
+  } finally {
+    await dbSql.end()
   }
 }

@@ -30,6 +30,7 @@ export default function PasswordScreen() {
       <div className="bg-white/80 backdrop-blur rounded-2xl shadow-2xl ring-1 ring-white/60 p-8 max-w-md w-full">
         <div className="flex justify-center mb-8">
           <Image
+            loading="eager"
             src="/GIRL3.jpg"
             alt="G.I.R.L. Logo"
             width={300}

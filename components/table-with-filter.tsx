@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import RefreshButton from './refresh-button'
 import CameraModal from './camera-modal'
@@ -27,7 +26,6 @@ export default function TableWithFilter({ racers: initialRacers, databases, blob
   const [searchTerm, setSearchTerm] = useState('')
   const [isCameraOpen, setIsCameraOpen] = useState(false)
   const [isSlideshowOpen, setIsSlideshowOpen] = useState(false)
-  const [slideshowImagesDatabase, setSlideshowImagesDatabase] = useState<string[]>([])
   const [slideshowImagesBlobs, setSlideshowImagesBlobs] = useState<string[]>([])
   const [selectedDatabase, setSelectedDatabase] = useState<string | null>(null)
   const [isLoadingDatabase, setIsLoadingDatabase] = useState(false)
@@ -62,7 +60,6 @@ export default function TableWithFilter({ racers: initialRacers, databases, blob
     setSlideshowImagesBlobs(blobImages)
 
     if (images.length > 0) {
-      setSlideshowImagesDatabase(images)
       setIsSlideshowOpen(true)
     }
   }
@@ -102,11 +99,10 @@ export default function TableWithFilter({ racers: initialRacers, databases, blob
     <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 p-4 shadow-2xl ring-1 ring-white/60 rounded-2xl backdrop-blur-lg max-w-2xl mx-auto w-full">
       <div className="flex justify-between items-start mb-4 gap-4">
         <div>
-          <Image
+          <img
+            loading="eager"
             src="/GIRL3.jpg"
             alt="G.I.R.L. Logo"
-            width={300}
-            height={120}
             className="h-24 w-auto"
           />
         </div>
@@ -232,12 +228,10 @@ export default function TableWithFilter({ racers: initialRacers, databases, blob
                           className="bg-gradient-to-br p-1 rounded-full ring-2 ring-white shadow-lg flex-shrink-0"
                           style={colorStyle}
                         >
-                          <Image
+                          <img
                             src={user.Image}
                             alt={user.Name}
-                            width={80}
-                            height={80}
-                            className="rounded-full"
+                            className="w-20 h-20 rounded-full object-cover"
                           />
                         </div>
                         <div>
